@@ -37,7 +37,7 @@ public with sharing class LittleBitsRESTService {
 	}
 
 	public String getDevice(String deviceId) {
-		try{
+		try {
 			this.device = deviceId;
 			LittleBit__c littleBit = [SELECT deviceId__c, accessToken__c FROM LittleBit__c WHERE deviceId__c = :deviceId];
 			this.token = littleBit.accessToken__c;	
@@ -47,6 +47,17 @@ public with sharing class LittleBitsRESTService {
 		}
 		
 		return sendGETRequest(ENDPOINT + '/' + deviceId);
+	}
+
+	public String sendOutput() {
+		return sendPOSTRequest(ENDPOINT +  '/' + device + '/output', new Map<String, String>());	
+	}
+
+	public String sendOutput(Integer percent, Integer duration) {
+		Map<String,String> parameters = new Map<String, String>();
+		parameters.put('percent', String.valueOf(percent));
+		parameters.put('duration_ms', String.valueOf(duration));
+		return sendPOSTRequest(ENDPOINT +  '/' + device + '/output', parameters); //'percent:'+percent+',duration_ms:'+duration);
 	}
 
 	private String sendGETRequest(String URL) {
@@ -65,5 +76,32 @@ public with sharing class LittleBitsRESTService {
 		}
 
 		return resp.getBody();
+	}
+
+	private String sendPOSTRequest(String URL, Map<String,String> parameters) {
+		HttpRequest req = new HttpRequest();
+		req.setEndpoint(URL);
+		req.setMethod('POST');
+		req.setHeader('Authorization', 'Bearer ' + token);
+    req.setHeader('Accept', 'application/vnd.littlebits.v2+json');
+    //req.setBody(body);
+    //req.setHeader('percent', '100');
+    //req.setHeader('duration_ms', '5000');
+
+    for(String key : parameters.keySet()) {
+    	req.setHeader(key, parameters.get(key));
+    }
+
+    System.debug('Body is: ' + req.getBody());
+
+		Http http = new Http();
+
+		HttpResponse resp = http.send(req);
+
+		if(resp.getStatusCode() != 200) {
+			throw new LittleBitsException('Error in making callout: ' + resp.getBody());
+		}
+
+		return resp.getBody();	
 	}
 }
