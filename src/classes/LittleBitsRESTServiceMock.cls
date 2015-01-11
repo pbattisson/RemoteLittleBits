@@ -20,6 +20,9 @@ public class LittleBitsRESTServiceMock implements HttpCalloutMock {
             returnBody.put('requestURL', req.getEndpoint());
             returnBody.put('body', req.getBody());
             returnBody.put('auth', req.getHeader('Authorization'));
+            returnBody.put('percent', req.getHeader('percent'));
+            returnBody.put('duration', req.getHeader('duration_ms'));
+
             res.setBody(JSON.serializePretty(returnBody));    
         } else {
             res.setBody(status);

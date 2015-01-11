@@ -1,4 +1,3 @@
-
 @isTest
 public with sharing class LittleBitsRESTServiceTest {
 	
@@ -189,6 +188,60 @@ public with sharing class LittleBitsRESTServiceTest {
 		try {
 			LittleBitsRESTService svc = new LittleBitsRESTService();
 			String jsonResp = svc.getDevice();			
+			System.assert(false, 'Should throw an error on status returned from request.');
+		} catch(LittleBitsException lbe){
+			errMsg = lbe.getMessage();
+		}
+		
+		Test.stopTest();
+
+		System.assertEquals(errMsg, 'Error in making callout: BAD REQUEST', 'Incorrect error message returned');
+	}
+
+	@isTest
+	private static void testSendOutput() {
+		Test.setMock(HttpCalloutMock.class, new LittleBitsRESTServiceMock(200, 'OK'));
+		insertDefaultDevice();
+
+		Test.startTest();
+		LittleBitsRESTService svc = new LittleBitsRESTService(testDeviceId, testAccessToken);
+		String jsonResp = svc.sendOutput();
+		Test.stopTest();
+
+		Map<String, String> jsonObj = (Map<String, String>)JSON.deserialize(jsonResp, Map<String, String>.class);
+		System.assertEquals(jsonObj.get('requestURL'), LittleBitsRESTService.ENDPOINT + '/' + testDeviceId + '/output', 'Incorrect URL returned from callout.');
+		System.assertEquals(jsonObj.get('auth'), 'Bearer '+ testAccessToken, 'Incorrect access token in callout.');
+		System.assertEquals(jsonObj.get('percent'), null, 'Incorrect percent in callout.');
+		System.assertEquals(jsonObj.get('duration'), null, 'Incorrect duration in callout.');
+	}
+
+	@isTest
+	private static void testSendOutputWithParameters() {
+		Test.setMock(HttpCalloutMock.class, new LittleBitsRESTServiceMock(200, 'OK'));
+		insertDefaultDevice();
+
+		Test.startTest();
+		LittleBitsRESTService svc = new LittleBitsRESTService(testDeviceId, testAccessToken);
+		String jsonResp = svc.sendOutput(100, 20000);
+		Test.stopTest();
+
+		Map<String, String> jsonObj = (Map<String, String>)JSON.deserialize(jsonResp, Map<String, String>.class);
+		System.assertEquals(jsonObj.get('requestURL'), LittleBitsRESTService.ENDPOINT + '/' + testDeviceId + '/output', 'Incorrect URL returned from callout.');
+		System.assertEquals(jsonObj.get('auth'), 'Bearer '+ testAccessToken, 'Incorrect access token in callout.');
+		System.assertEquals(jsonObj.get('percent'), '100', 'Incorrect percent in callout.');
+		System.assertEquals(jsonObj.get('duration'), '20000', 'Incorrect duration in callout.');	
+	}
+
+	@isTest
+	private static void testSendOutputError() {
+		Test.setMock(HttpCalloutMock.class, new LittleBitsRESTServiceMock(400, 'BAD REQUEST'));
+		insertDefaultDevice();
+		String errMsg = '';
+		
+		Test.startTest();		
+		try {
+			LittleBitsRESTService svc = new LittleBitsRESTService();
+			String jsonResp = svc.sendOutput();			
 			System.assert(false, 'Should throw an error on status returned from request.');
 		} catch(LittleBitsException lbe){
 			errMsg = lbe.getMessage();

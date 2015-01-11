@@ -84,9 +84,6 @@ public with sharing class LittleBitsRESTService {
 		req.setMethod('POST');
 		req.setHeader('Authorization', 'Bearer ' + token);
     req.setHeader('Accept', 'application/vnd.littlebits.v2+json');
-    //req.setBody(body);
-    //req.setHeader('percent', '100');
-    //req.setHeader('duration_ms', '5000');
 
     for(String key : parameters.keySet()) {
     	req.setHeader(key, parameters.get(key));
